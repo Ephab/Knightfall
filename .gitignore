@@ -1,0 +1,77 @@
+# Compiled object files
+*.o
+*.obj
+*.lo
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Executables and binaries
+*.exe
+*.out
+*.app
+*.bin
+
+# Debugging and profiling files
+*.dSYM/
+*.pdb
+*.ilk
+*.prof
+*.gcda
+*.gcno
+*.gcov
+
+# CMake build artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CTestTestfile.cmake
+Makefile
+compile_commands.json
+_install/
+cmake-build-*/
+build/
+out/
+
+# CMake-generated project files
+*.cmake.user
+*.ninja
+.ninja_deps
+.ninja_log
+
+# Compiler temporary and dependency files
+*.d
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Visual Studio Code
+.vscode/
+
+# Clang tooling
+.clangd
+.clang-format
+
+# Operating-system files
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
