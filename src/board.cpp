@@ -7,6 +7,7 @@
 #include <iostream>
 #include <optional>
 #include <ostream>
+#include <array>
 
 #include "types.h"
 
@@ -109,6 +110,16 @@ bool Board::isOccupied(Square position) const{
     return !isEmpty(position);
 }
 
+File Board::getFile(Square position){
+    int file = static_cast<int>(position) % 8;
+    return static_cast<File>(file);
+}
+
+Rank Board::getRank(Square position){
+    int rank = static_cast<int>(position) / 8;
+    return static_cast<Rank>(rank);
+}
+
 void Board::clearPiece(Square position){
     pieceMap[static_cast<int>(position)] = Piece::EMPTY;
 }
@@ -128,7 +139,7 @@ std::optional<Color> Board::getPieceColor(Piece piece){
     return Color::BLACK;
 }
 
-void Board::printBoard(){
+void Board::printBoard() const{
     for (int rank = 7; rank >= 0; --rank){
         std::cout << rank + 1 << " ";
 
@@ -140,6 +151,19 @@ void Board::printBoard(){
         std::cout << std::endl;
     }
     std::cout << "  a b c d e f g h" << std::endl;
+}
+
+std::optional<Square> Board::getSquareOffset(Square square, int offsetX, int offsetY){
+    const File file = getFile(square);
+    const Rank rank = getRank(square);
+
+    int new_file = static_cast<int>(file) + offsetX;
+    int new_rank = static_cast<int>(rank) + offsetY;
+
+    if (new_file < 0 || new_file > 7 || new_rank < 0 || new_rank > 7){
+        return std::nullopt;
+    }
+    return static_cast<Square>(new_rank * 8 + new_file);
 }
 
 char Board::printPiece(Piece enumObject) {
@@ -174,4 +198,23 @@ char Board::printPiece(Piece enumObject) {
         default:
             throw std::invalid_argument("Invalid piece");
     }
+}
+
+std::string Board::printSquare(Square square){
+    auto file = getFile(square);
+    auto rank = getRank(square);
+
+    std::string file_str;
+    const std::string rank_str = std::to_string(static_cast<int>(rank) + 1);
+
+    if (file == File::A) file_str = "A";
+    if (file == File::B) file_str = "B";
+    if (file == File::C) file_str = "C";
+    if (file == File::D) file_str = "D";
+    if (file == File::E) file_str = "E";
+    if (file == File::F) file_str = "F";
+    if (file == File::G) file_str = "G";
+    if (file == File::H) file_str = "H";
+
+    return file_str + rank_str;
 }

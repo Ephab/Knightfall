@@ -8,7 +8,6 @@
 #include <cstdint>
 using U64 = std::uint64_t;
 
-
 enum class Color{
     WHITE,
     BLACK
@@ -44,6 +43,13 @@ enum class Piece{
     EMPTY
 };
 
-class Move;
+enum class File{
+    A, B, C, D, E, F, G, H
+};
+enum class Rank{
+    ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT
+};
+
+struct Move;
 
 #endif //CHESS_TYPES_H
