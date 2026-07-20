@@ -5,6 +5,7 @@
 #include "move.h"
 #include "board.h"
 #include <vector>
+#include <array>
 #include <ostream>
 #include <string>
 
@@ -108,6 +109,68 @@ std::vector<Move> generatePawnMoves(Board &board){
     //END: return
     return legalMoves;
 }
+
+std::vector<Move> generateKnightMoves(Board &board){
+    //todo: make this color-agnostic also
+    auto legalMoves = std::vector<Move>();
+    auto knights = board.whiteKnights;
+
+    for (const auto position : Board::positions){
+        if (Board::isBitSet(knights, position)){ // if knight is in position
+            const auto destinations = getPossibleKnightDestinations(position);
+            for (const auto destination : destinations){
+                // Case 1. Empty Square
+                if (board.isEmpty(destination)){
+                    legalMoves.push_back(Move{
+                        .sourceSquare = position,
+                        .destinationSquare = destination
+                    });
+                    continue;
+                }
+                // Case 2. Capture (Opposite color)
+                const Piece capturingPiece = board.getPiece(position);
+                const Piece capturedPiece = board.getPiece(destination);
+                const Color capturingPieceColor = Board::getPieceColor(capturingPiece).value();
+                const Color capturedPieceColor = Board::getPieceColor(capturedPiece).value();
+
+                if (capturedPieceColor != capturingPieceColor){
+                    legalMoves.push_back(Move{
+                        .sourceSquare = position,
+                        .destinationSquare = destination,
+                        .capturedPiece = capturedPiece
+                    });
+                }
+            }
+        }
+    }
+    return legalMoves;
+}
+
+std::vector<Move> generateBishopMoves(Board& board){
+
+}
+
+std::vector<Square> getPossibleKnightDestinations(Square square){
+    std::vector<std::pair<int, int>> offsets = {
+        { 1,  2},
+        { 2,  1},
+        { 2, -1},
+        { 1, -2},
+        {-1, -2},
+        {-2, -1},
+        {-2,  1},
+        {-1,  2}
+    };
+    std::vector<Square> destinations;
+    for (auto offset : offsets){
+        auto destinationSquare = Board::getSquareOffset(square, offset.first, offset.second);
+        if (destinationSquare){
+            destinations.push_back(destinationSquare.value());
+        }
+    }
+    return destinations;
+}
+
 
 // bool isMoveLegal(Move move){
 // }

@@ -11,9 +11,15 @@ int main(){
     board.printBoard();
 
     auto moves = generatePawnMoves(board);
+    auto knightMoves = generateKnightMoves(board);
+    moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
+
+
     for (Move move: moves){
-        cout << move << endl;
+        cout << move;
+        cout << " - ";
     }
+    cout << endl << "Total Moves: " << moves.size() <<endl;
 
     return 0;
 }
