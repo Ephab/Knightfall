@@ -230,7 +230,6 @@ std::vector<Move> getDiagonalMoves(Board& board, Square square){
     return diagonalMoves;
 }
 
-
 std::vector<Move> generateRookMoves(Board& board){
     //todo: make color-agnostic
     auto legalMoves = std::vector<Move>();
@@ -292,6 +291,23 @@ std::vector<Move> getStraightMoves(Board& board, Square square){
             }
         }
     }
+}
+
+std::vector<Move> generateQueenMoves(Board& board){
+    //todo: make color-agnostic
+    auto legalMoves = std::vector<Move>();
+    auto queens = board.whiteQueens;
+
+    for (const auto position : Board::positions){
+        if (Board::isBitSet(queens, position)){ //if rook in position
+            //todo: here we can pass the legalmoves by reference later on to squeeze out more performance instead of temp vectors
+            auto straightQueenMoves = getStraightMoves(board, position);
+            auto diagonalQueenMoves = getDiagonalMoves(board, position);
+            legalMoves.insert(legalMoves.end(), straightQueenMoves.begin(), straightQueenMoves.end());
+            legalMoves.insert(legalMoves.end(), diagonalQueenMoves.begin(), diagonalQueenMoves.end());
+        }
+    }
+    return legalMoves;
 }
 
 
