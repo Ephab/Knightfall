@@ -9,6 +9,14 @@
 #include <ostream>
 #include <string>
 
+/*todo:
+    promotions
+    en passant
+    castling
+    color-agnostic,
+    filtering out moves that leave king in check.
+*/
+
 
 std::vector<Move> generatePawnMoves(Board &board){
     //todo: Make this color-agnostic (make it work for black as well)
@@ -308,6 +316,65 @@ std::vector<Move> generateQueenMoves(Board& board){
         }
     }
     return legalMoves;
+}
+
+std::vector<Move> generateKingMoves(Board& board){
+    //todo: make this color-agnostic also
+    auto legalMoves = std::vector<Move>();
+    auto king = board.whiteKing;
+
+    for (const auto position : Board::positions){
+        if (Board::isBitSet(king, position)){ // if king is in position
+            const auto destinations = getPossibleKingDestinations(position);
+            for (const auto destination : destinations){
+
+                // Case 1. Empty Square
+                if (board.isEmpty(destination)){
+                    legalMoves.push_back(Move{
+                        .sourceSquare = position,
+                        .destinationSquare = destination
+                    });
+                    continue;
+                }
+                // Case 2. Capture (Opposite color)
+                const Piece capturingPiece = board.getPiece(position);
+                const Piece capturedPiece = board.getPiece(destination);
+                const Color capturingPieceColor = Board::getPieceColor(capturingPiece).value();
+                const Color capturedPieceColor = Board::getPieceColor(capturedPiece).value();
+
+                if (capturedPieceColor != capturingPieceColor){
+                    legalMoves.push_back(Move{
+                        .sourceSquare = position,
+                        .destinationSquare = destination,
+                        .capturedPiece = capturedPiece
+                    });
+                }
+            }
+        }
+    }
+    return legalMoves;
+}
+
+std::vector<Square> getPossibleKingDestinations(Square square){
+    std::vector<std::pair<int, int>> offsets = {
+        { 0, 1},  //N
+        { 1, 0},  //E
+        { 0, -1}, //S
+        {-1, 0},  //W
+        { 1, 1},  //NE
+        { 1, -1}, //SE
+        {-1, -1}, //SW
+        {-1,  1}  //NW
+    };
+
+    std::vector<Square> destinations;
+    for (auto offset : offsets){
+        auto destinationSquare = Board::getSquareOffset(square, offset.first, offset.second);
+        if (destinationSquare){
+            destinations.push_back(destinationSquare.value());
+        }
+    }
+    return destinations;
 }
 
 

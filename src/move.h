@@ -34,7 +34,8 @@ std::vector<Move> getStraightMoves(Board& board, Square square);
 
 std::vector<Move> generateQueenMoves(Board& board);
 
-std::vector<Move> generateKingMoves(Board& board, Square square);
+std::vector<Move> generateKingMoves(Board& board);
+std::vector<Square> getPossibleKingDestinations(Square square);
 
 
 bool isMoveLegal(Move move);
