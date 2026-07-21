@@ -27,8 +27,9 @@ std::vector<Move> generateKnightMoves(Board &board);
 std::vector<Square> getPossibleKnightDestinations(Square square);
 
 std::vector<Move> generateBishopMoves(Board &board);
-
 std::vector<Move> getDiagonalMoves(Board& board, Square square);
+
+std::vector<Move> generateRookMoves(Board& board);
 std::vector<Move> getStraightMoves(Board& board, Square square);
 
 bool isMoveLegal(Move move);

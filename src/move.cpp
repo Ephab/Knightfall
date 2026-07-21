@@ -190,19 +190,13 @@ std::vector<Move> getDiagonalMoves(Board& board, Square square){
     for (int i = 0; i < 4; i++){
         // for each distance (1-7)
         for (int j = 1; j <= 7; j++){
+
             int x; int y;
-            if (i == 0){ //NE
-                x = j; y = j;
-            }
-            if (i == 1){ //SE
-                x = j; y = -j;
-            }
-            if (i == 2){ //SW
-                x = -j; y = -j;
-            }
-            if (i == 3){ //NW
-                x = -j; y = j;
-            }
+            if (i == 0) {x = j; y = j;}   //NE
+            if (i == 1) {x = j; y = -j;}  //SE
+            if (i == 2) {x = -j; y = -j;} //SW
+            if (i == 3) {x = -j; y = j;}  //NW
+
             auto destinationSquare = Board::getSquareOffset(square, x, y);
             if (destinationSquare){
                 //1. Capture / Friendly Piece
@@ -236,9 +230,68 @@ std::vector<Move> getDiagonalMoves(Board& board, Square square){
     return diagonalMoves;
 }
 
+
+std::vector<Move> generateRookMoves(Board& board){
+    //todo: make color-agnostic
+    auto legalMoves = std::vector<Move>();
+    auto rooks = board.whiteRooks;
+
+    for (const auto position : Board::positions){
+        if (Board::isBitSet(rooks, position)){ //if rook in position
+            //todo: here we can pass the legalmoves by reference later on to squeeze out more performance instead of temp vectors
+            auto currRookMoves = getStraightMoves(board, position);
+            legalMoves.insert(legalMoves.end(), currRookMoves.begin(), currRookMoves.end());
+        }
+    }
+    return legalMoves;
+}
+
 std::vector<Move> getStraightMoves(Board& board, Square square){
-    std::vector<Move> diagonalMoves{};
+    std::vector<Move> straightMoves{};
     const Color currentPieceColor = Board::getPieceColor(board.getPiece(square)).value();
+
+    // for each direction
+    for (int i = 0; i < 4; i++){
+        // for each distance (1-7)
+        for (int j = 1; j <= 7; j++){
+
+            int x; int y;
+            if (i == 0) {x = 0; y = j;}  //N
+            if (i == 1) {x = j; y = 0;}  //E
+            if (i == 2) {x = 0; y = -j;} //S
+            if (i == 3) {x = -j; y = 0;} //W
+
+            auto destinationSquare = Board::getSquareOffset(square, x, y);
+            if (destinationSquare){
+
+                //1. Capture / Friendly Piece
+                if (board.isOccupied(destinationSquare.value())){ // if there's a piece
+                    // check if enemy or same color
+                    const Piece capturedPiece = board.getPiece(destinationSquare.value());
+                    const Color capturedPieceColor = Board::getPieceColor(capturedPiece).value();
+
+                    // if same color, prune the branch
+                    if (currentPieceColor == capturedPieceColor) break;
+
+                    // if different, add it as a legal move then prune the branch
+                    straightMoves.push_back(Move{
+                        .sourceSquare = square,
+                        .destinationSquare = destinationSquare.value(),
+                        .capturedPiece = capturedPiece
+                    });
+                    break;
+
+                }
+                // if the square is empty
+                else{
+                    straightMoves.push_back(Move{
+                        .sourceSquare = square,
+                        .destinationSquare = destinationSquare.value()
+                    });
+                }
+            }
+        }
+    }
 }
 
 
