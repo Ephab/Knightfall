@@ -299,6 +299,7 @@ std::vector<Move> getStraightMoves(Board& board, Square square){
             }
         }
     }
+    return straightMoves;
 }
 
 std::vector<Move> generateQueenMoves(Board& board){
