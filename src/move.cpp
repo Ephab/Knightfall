@@ -146,10 +146,6 @@ std::vector<Move> generateKnightMoves(Board &board){
     return legalMoves;
 }
 
-std::vector<Move> generateBishopMoves(Board& board){
-
-}
-
 std::vector<Square> getPossibleKnightDestinations(Square square){
     std::vector<std::pair<int, int>> offsets = {
         { 1,  2},
@@ -171,15 +167,80 @@ std::vector<Square> getPossibleKnightDestinations(Square square){
     return destinations;
 }
 
+std::vector<Move> generateBishopMoves(Board& board){
+    //todo: make color-agnostic
+    auto legalMoves = std::vector<Move>();
+    auto bishops = board.whiteBishops;
 
-// bool isMoveLegal(Move move){
-// }
+    for (const auto position : Board::positions){
+        if (Board::isBitSet(bishops, position)){ //if bishop in position
+            //todo: here we can pass the legalmoves by reference later on to squeeze out more performance instead of temp vectors
+            auto currBishopMoves = getDiagonalMoves(board, position);
+            legalMoves.insert(legalMoves.end(), currBishopMoves.begin(), currBishopMoves.end());
+        }
+    }
+    return legalMoves;
+}
 
-// bool makeMove(Move move){
-//     if (isMoveLegal(move)){
-//
-//     }
-// }
+std::vector<Move> getDiagonalMoves(Board& board, Square square){
+    std::vector<Move> diagonalMoves{};
+    const Color currentPieceColor = Board::getPieceColor(board.getPiece(square)).value();
+
+    // for each direction
+    for (int i = 0; i < 4; i++){
+        // for each distance (1-7)
+        for (int j = 1; j <= 7; j++){
+            int x; int y;
+            if (i == 0){ //NE
+                x = j; y = j;
+            }
+            if (i == 1){ //SE
+                x = j; y = -j;
+            }
+            if (i == 2){ //SW
+                x = -j; y = -j;
+            }
+            if (i == 3){ //NW
+                x = -j; y = j;
+            }
+            auto destinationSquare = Board::getSquareOffset(square, x, y);
+            if (destinationSquare){
+                //1. Capture / Friendly Piece
+                if (board.isOccupied(destinationSquare.value())){ // if there's a piece
+                    // check if enemy or same color
+                    const Piece capturedPiece = board.getPiece(destinationSquare.value());
+                    const Color capturedPieceColor = Board::getPieceColor(capturedPiece).value();
+
+                    // if same color, prune the branch
+                    if (currentPieceColor == capturedPieceColor) break;
+
+                    // if different, add it as a legal move then prune the branch
+                    diagonalMoves.push_back(Move{
+                        .sourceSquare = square,
+                        .destinationSquare = destinationSquare.value(),
+                        .capturedPiece = capturedPiece
+                    });
+                    break;
+
+                }
+                // if the square is empty
+                else{
+                    diagonalMoves.push_back(Move{
+                        .sourceSquare = square,
+                        .destinationSquare = destinationSquare.value()
+                    });
+                }
+            }
+        }
+    }
+    return diagonalMoves;
+}
+
+std::vector<Move> getStraightMoves(Board& board, Square square){
+    std::vector<Move> diagonalMoves{};
+    const Color currentPieceColor = Board::getPieceColor(board.getPiece(square)).value();
+}
+
 
 std::ostream& operator<<(std::ostream& os, const Move& move){
     return os << "Move [src: " + Board::printSquare(move.sourceSquare) + ", dst: " + Board::printSquare(move.destinationSquare) + "]";

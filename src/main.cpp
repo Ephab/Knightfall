@@ -12,6 +12,8 @@ int main(){
 
     auto moves = generatePawnMoves(board);
     auto knightMoves = generateKnightMoves(board);
+    auto bishopMoves = generateBishopMoves(board);
+    moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
     moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
 
 

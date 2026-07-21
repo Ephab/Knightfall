@@ -141,7 +141,7 @@ std::optional<Color> Board::getPieceColor(Piece piece){
 
 void Board::printBoard() const{
     for (int rank = 7; rank >= 0; --rank){
-        std::cout << rank + 1 << " ";
+        std::cout << rank + 1 << " │ ";
 
         for (int file = 0; file < 8; ++file){
             int index = rank * 8 + file;
@@ -150,7 +150,7 @@ void Board::printBoard() const{
 
         std::cout << std::endl;
     }
-    std::cout << "  a b c d e f g h" << std::endl;
+    std::cout << "   ————————————————" << std::endl << "    a b c d e f g h" << std::endl;
 }
 
 std::optional<Square> Board::getSquareOffset(Square square, int offsetX, int offsetY){
