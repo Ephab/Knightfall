@@ -2,14 +2,15 @@
 // Created by Firas on 16/07/2026.
 //
 
-#ifndef CHESS_BOARD_H
-#define CHESS_BOARD_H
+#pragma once
 
 #include <optional>
 #include "types.h"
 #include <string>
 #include <array>
 #include <vector>
+
+#include "move.h"
 
 
 class Board{
@@ -43,17 +44,26 @@ public:
 
     Piece pieceMap[64];
 
+    std::vector<Move> moveHistory = {};
+
     Board();
 
     void initializeStartingPosition();
+    void setCustomStartingPosition();
 
     static void setBit(U64& bitboard, Square position);
     static void clearBit(U64& bitboard, Square position);
     static bool isBitSet(U64& bitboard, Square position);
 
+    void placePiece(Square position, Piece piece);
+    void removePiece(Board& board, Square position);
+
     void setPiece(Square position, Piece piece);
     Piece getPiece(Square position) const;
     void clearPiece(Square position);
+
+    void makeMove(Move move);
+    void undoMove(Move move);
 
     static std::optional<Color> getPieceColor(Piece piece);
 
@@ -68,7 +78,7 @@ public:
     void printBoard() const;
 
     static std::optional<Square> getSquareOffset(Square square, int offsetX, int offsetY);
+
+    U64* getBitboardPointer(Piece piece);
+
 };
-
-
-#endif //CHESS_BOARD_H

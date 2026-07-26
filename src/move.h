@@ -2,8 +2,7 @@
 // Created by Firas on 17/07/2026.
 //
 
-#ifndef CHESS_MOVE_H
-#define CHESS_MOVE_H
+#pragma once
 
 #include <optional>
 #include "board.h"
@@ -37,10 +36,9 @@ std::vector<Move> generateQueenMoves(Board& board);
 std::vector<Move> generateKingMoves(Board& board);
 std::vector<Square> getPossibleKingDestinations(Square square);
 
+std::vector<Move> generateAllMoves(Board& board);
 
 bool isMoveLegal(Move move);
 bool makeMove(Move move);
 
 std::ostream& operator<<(std::ostream& os, const Move& move);
-
-#endif //CHESS_MOVE_H

@@ -7,7 +7,8 @@ using namespace std;
 
 int main(){
     Board board = Board();
-    board.initializeStartingPosition();
+    // board.initializeStartingPosition();
+    board.setCustomStartingPosition();
     board.printBoard();
 
     auto moves = generatePawnMoves(board);

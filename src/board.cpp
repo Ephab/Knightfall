@@ -79,6 +79,10 @@ void Board::initializeStartingPosition(){
 
 }
 
+void Board::setCustomStartingPosition(){
+    placePiece(Square::D4, Piece::WHITE_QUEEN);
+}
+
 void Board::setBit(U64& bitboard, Square position){
     U64 mask = 1ULL << static_cast<int>(position);
     bitboard |= mask;
@@ -92,6 +96,26 @@ void Board::clearBit(U64& bitboard, Square position){
 bool Board::isBitSet(U64& bitboard, Square position){
     U64 mask = 1ULL << static_cast<int>(position);
     return (bitboard & mask) != 0;
+}
+
+void Board::placePiece(Square position, Piece piece){
+    if (piece == Piece::EMPTY) return;
+
+    if (getPiece(position) != Piece::EMPTY)
+        throw std::invalid_argument("Square is already occupied at " + printSquare(position));
+
+    U64* bitboard = getBitboardPointer(piece);
+    setPiece(position, piece);
+    setBit(*bitboard, position);
+}
+
+void Board::removePiece(Board& board, Square position){
+    Piece piece = board.getPiece(position);
+    if (piece == Piece::EMPTY) return;
+
+    U64* bitboard = getBitboardPointer(piece);
+    clearPiece(position);
+    clearBit(*bitboard, position);
 }
 
 void Board::setPiece(Square position, Piece piece){
@@ -122,6 +146,35 @@ Rank Board::getRank(Square position){
 
 void Board::clearPiece(Square position){
     pieceMap[static_cast<int>(position)] = Piece::EMPTY;
+}
+
+void Board::makeMove(Move move){
+    Square sourceSquare = move.sourceSquare;
+    Square destinationSquare = move.destinationSquare;
+
+    bool isCapture = move.capturedPiece != Piece::EMPTY;
+    bool isPromotion = move.promotionPiece != Piece::EMPTY;
+
+    Piece destinationPiece = getPiece(sourceSquare);
+
+    if (isCapture){
+        removePiece(*this, destinationSquare); //remove enemy
+    }
+    if (isPromotion){
+        destinationPiece = move.promotionPiece;
+    }
+
+    removePiece(*this, sourceSquare);
+    placePiece(destinationSquare, destinationPiece);
+
+    if (sideToMove == Color::WHITE)
+        sideToMove = Color::BLACK;
+    else
+        sideToMove = Color::WHITE;
+}
+
+void Board::undoMove(Move move){
+
 }
 
 std::optional<Color> Board::getPieceColor(Piece piece){
@@ -164,6 +217,51 @@ std::optional<Square> Board::getSquareOffset(Square square, int offsetX, int off
         return std::nullopt;
     }
     return static_cast<Square>(new_rank * 8 + new_file);
+}
+
+U64* Board::getBitboardPointer(Piece piece){
+    U64* bitboard;
+    switch (piece){
+    case Piece::WHITE_PAWN:
+        bitboard = &whitePawns;
+        break;
+    case Piece::WHITE_KNIGHT:
+        bitboard = &whiteKnights;
+        break;
+    case Piece::WHITE_BISHOP:
+        bitboard = &whiteBishops;
+        break;
+    case Piece::WHITE_ROOK:
+        bitboard = &whiteRooks;
+        break;
+    case Piece::WHITE_QUEEN:
+        bitboard = &whiteQueens;
+        break;
+    case Piece::WHITE_KING:
+        bitboard = &whiteKing;
+        break;
+
+    case Piece::BLACK_PAWN:
+        bitboard = &blackPawns;
+        break;
+    case Piece::BLACK_KNIGHT:
+        bitboard = &blackKnights;
+        break;
+    case Piece::BLACK_BISHOP:
+        bitboard = &blackBishops;
+        break;
+    case Piece::BLACK_ROOK:
+        bitboard = &blackRooks;
+        break;
+    case Piece::BLACK_QUEEN:
+        bitboard = &blackQueens;
+        break;
+    case Piece::BLACK_KING:
+        bitboard = &blackKing;
+        break;
+    case Piece::EMPTY:
+        return nullptr;
+    }
 }
 
 char Board::printPiece(Piece enumObject) {

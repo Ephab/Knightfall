@@ -2,8 +2,7 @@
 // Created by Firas on 16/07/2026.
 //
 
-#ifndef CHESS_TYPES_H
-#define CHESS_TYPES_H
+#pragma once
 
 #include <cstdint>
 using U64 = std::uint64_t;
@@ -49,7 +48,3 @@ enum class File{
 enum class Rank{
     ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT
 };
-
-struct Move;
-
-#endif //CHESS_TYPES_H

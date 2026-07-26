@@ -378,6 +378,26 @@ std::vector<Square> getPossibleKingDestinations(Square square){
     return destinations;
 }
 
+std::vector<Move> generateAllMoves(Board& board){
+    std::vector<Move> allMoves;
+
+    auto pawnMoves = generatePawnMoves(board);
+    auto knightMoves = generateKnightMoves(board);
+    auto bishopMoves = generateBishopMoves(board);
+    auto rookMoves = generateRookMoves(board);
+    auto queenMoves = generateQueenMoves(board);
+    auto kingMoves = generateKingMoves(board);
+
+    allMoves.insert(allMoves.end(), pawnMoves.begin(), pawnMoves.end());
+    allMoves.insert(allMoves.end(), knightMoves.begin(), knightMoves.end());
+    allMoves.insert(allMoves.end(), bishopMoves.begin(), bishopMoves.end());
+    allMoves.insert(allMoves.end(), rookMoves.begin(), rookMoves.end());
+    allMoves.insert(allMoves.end(), queenMoves.begin(), queenMoves.end());
+    allMoves.insert(allMoves.end(), kingMoves.begin(), kingMoves.end());
+
+    return allMoves;
+}
+
 
 std::ostream& operator<<(std::ostream& os, const Move& move){
     return os << "Move [src: " + Board::printSquare(move.sourceSquare) + ", dst: " + Board::printSquare(move.destinationSquare) + "]";
