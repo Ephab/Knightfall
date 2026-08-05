@@ -9,20 +9,10 @@ int main(){
     Board board = Board();
     // board.initializeStartingPosition();
     board.setCustomStartingPosition();
+    //todo: add test to run moves = expected
     board.printBoard();
 
-    auto moves = generatePawnMoves(board);
-    auto knightMoves = generateKnightMoves(board);
-    auto bishopMoves = generateBishopMoves(board);
-    auto rookMoves = generateRookMoves(board);
-    auto queenMoves = generateQueenMoves(board);
-    auto kingMoves = generateKingMoves(board);
-
-    moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
-    moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
-    moves.insert(moves.end(), rookMoves.begin(), rookMoves.end());
-    moves.insert(moves.end(), queenMoves.begin(), queenMoves.end());
-    moves.insert(moves.end(), kingMoves.begin(), kingMoves.end());
+    auto moves = generateAllMoves(board);
 
     for (Move move: moves){
         cout << move;

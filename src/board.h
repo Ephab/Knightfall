@@ -40,11 +40,37 @@ public:
     U64 blackRooks;
     U64 blackQueens;
 
+    std::array<U64*, 12> bitboards = {
+        &whitePawns,
+        &whiteKnights,
+        &whiteBishops,
+        &whiteKing,
+        &whiteRooks,
+        &whiteQueens,
+
+        &blackPawns,
+        &blackKnights,
+        &blackBishops,
+        &blackKing,
+        &blackRooks,
+        &blackQueens
+    };
+
+
     Color sideToMove;
+
+    std::optional<Square> enPassentSquare;
 
     Piece pieceMap[64];
 
     std::vector<Move> moveHistory = {};
+    std::vector<UndoInfo> undoStack = {};
+
+    bool whiteCanCastleKingside = true;
+    bool whiteCanCastleQueenside = true;
+
+    bool blackCanCastleKingside = true;
+    bool blackCanCastleQueenside = true;
 
     Board();
 
@@ -56,14 +82,14 @@ public:
     static bool isBitSet(U64& bitboard, Square position);
 
     void placePiece(Square position, Piece piece);
-    void removePiece(Board& board, Square position);
+    void removePiece(Square position);
 
     void setPiece(Square position, Piece piece);
     Piece getPiece(Square position) const;
     void clearPiece(Square position);
 
-    void makeMove(Move move);
-    void undoMove(Move move);
+    void makeMove(const Move& move);
+    void undoMove();
 
     static std::optional<Color> getPieceColor(Piece piece);
 

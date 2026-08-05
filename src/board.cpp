@@ -80,7 +80,7 @@ void Board::initializeStartingPosition(){
 }
 
 void Board::setCustomStartingPosition(){
-    placePiece(Square::D4, Piece::WHITE_QUEEN);
+    placePiece(Square::D4, Piece::WHITE_BISHOP);
 }
 
 void Board::setBit(U64& bitboard, Square position){
@@ -109,8 +109,8 @@ void Board::placePiece(Square position, Piece piece){
     setBit(*bitboard, position);
 }
 
-void Board::removePiece(Board& board, Square position){
-    Piece piece = board.getPiece(position);
+void Board::removePiece(Square position){
+    Piece piece = getPiece(position);
     if (piece == Piece::EMPTY) return;
 
     U64* bitboard = getBitboardPointer(piece);
@@ -148,33 +148,120 @@ void Board::clearPiece(Square position){
     pieceMap[static_cast<int>(position)] = Piece::EMPTY;
 }
 
-void Board::makeMove(Move move){
+void Board::makeMove(const Move& move){
     Square sourceSquare = move.sourceSquare;
     Square destinationSquare = move.destinationSquare;
 
-    bool isCapture = move.capturedPiece != Piece::EMPTY;
-    bool isPromotion = move.promotionPiece != Piece::EMPTY;
+    const bool isCapture = move.capturedPiece != Piece::EMPTY;
+    const bool isPromotion = move.promotionPiece != Piece::EMPTY;
 
+    Piece startingPiece = getPiece(sourceSquare);
     Piece destinationPiece = getPiece(sourceSquare);
+    Piece capturedPiece = move.capturedPiece;
+
+    //todo: implement this later
+    std::optional<Square> enPassantSquare = std::nullopt;
 
     if (isCapture){
-        removePiece(*this, destinationSquare); //remove enemy
+        removePiece(destinationSquare); //remove enemy
     }
     if (isPromotion){
         destinationPiece = move.promotionPiece;
     }
 
-    removePiece(*this, sourceSquare);
+    undoStack.push_back(UndoInfo{
+        .move = move,
+        .startingPiece = startingPiece,
+        .sideToMove = sideToMove,
+        .whiteCanCastleKingside = whiteCanCastleKingside,
+        .whiteCanCastleQueenside = whiteCanCastleQueenside,
+        .blackCanCastleKingside = blackCanCastleKingside,
+        .blackCanCastleQueenside = blackCanCastleQueenside,
+        .enPassentSquare = enPassantSquare
+    });
+
+    removePiece(sourceSquare);
     placePiece(destinationSquare, destinationPiece);
 
     if (sideToMove == Color::WHITE)
         sideToMove = Color::BLACK;
     else
         sideToMove = Color::WHITE;
+
+    moveHistory.push_back(move);
+
+    //KING MOVED
+    if (startingPiece == Piece::WHITE_KING){
+        this->whiteCanCastleKingside = false;
+        this->whiteCanCastleQueenside = false;
+    }
+    if (startingPiece == Piece::BLACK_KING){
+        this->blackCanCastleKingside = false;
+        this->blackCanCastleQueenside = false;
+    }
+    //ROOKS MOVED
+    if (startingPiece == Piece::WHITE_ROOK &&
+        sourceSquare == Square::A1)
+        this->whiteCanCastleQueenside = false;
+    if (startingPiece == Piece::WHITE_ROOK &&
+        sourceSquare == Square::H1)
+        this->whiteCanCastleKingside = false;
+    if (startingPiece == Piece::BLACK_ROOK &&
+        sourceSquare == Square::A8)
+        this->blackCanCastleQueenside = false;
+    if (startingPiece == Piece::BLACK_ROOK &&
+        sourceSquare == Square::H8)
+        this->blackCanCastleKingside = false;
+    //ROOKS CAPTURED
+    if (capturedPiece == Piece::WHITE_ROOK &&
+        destinationSquare == Square::A1)
+        this->whiteCanCastleQueenside = false;
+    if (capturedPiece == Piece::WHITE_ROOK &&
+        destinationSquare == Square::H1)
+        this->whiteCanCastleKingside = false;
+    if (capturedPiece == Piece::BLACK_ROOK &&
+        destinationSquare == Square::A8)
+        this->blackCanCastleQueenside = false;
+    if (capturedPiece == Piece::BLACK_ROOK &&
+        destinationSquare == Square::H8)
+        this->blackCanCastleKingside = false;
 }
 
-void Board::undoMove(Move move){
+void Board::undoMove(){
+    if (undoStack.empty())
+        throw std::logic_error("Cannot undo, stack is empty.");
 
+    auto undoInfo = undoStack.back();
+    auto move = undoInfo.move;
+    undoStack.pop_back();
+    moveHistory.pop_back();
+
+    auto original_square = move.sourceSquare;
+    auto original_piece = undoInfo.startingPiece;
+
+    auto updated_square = move.destinationSquare;
+
+    auto old_wk = undoInfo.whiteCanCastleKingside;
+    auto old_wq = undoInfo.whiteCanCastleQueenside;
+    auto old_bk = undoInfo.blackCanCastleKingside;
+    auto old_bq = undoInfo.blackCanCastleQueenside;
+
+    auto enPassentSquare = undoInfo.enPassentSquare;
+
+    removePiece(updated_square);
+    placePiece(original_square, original_piece);
+
+    if (move.capturedPiece != Piece::EMPTY)
+        placePiece(updated_square, move.capturedPiece);
+
+    whiteCanCastleKingside = old_wk;
+    whiteCanCastleQueenside = old_wq;
+    blackCanCastleKingside = old_bk;
+    blackCanCastleQueenside = old_bq;
+
+    //todo: handle enpassent
+
+    sideToMove = undoInfo.sideToMove;
 }
 
 std::optional<Color> Board::getPieceColor(Piece piece){
@@ -220,7 +307,7 @@ std::optional<Square> Board::getSquareOffset(Square square, int offsetX, int off
 }
 
 U64* Board::getBitboardPointer(Piece piece){
-    U64* bitboard;
+    U64* bitboard = nullptr;
     switch (piece){
     case Piece::WHITE_PAWN:
         bitboard = &whitePawns;
@@ -262,6 +349,7 @@ U64* Board::getBitboardPointer(Piece piece){
     case Piece::EMPTY:
         return nullptr;
     }
+    return bitboard;
 }
 
 char Board::printPiece(Piece enumObject) {
