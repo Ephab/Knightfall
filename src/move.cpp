@@ -21,26 +21,57 @@
     filtering out moves that leave king in check.
 */
 
-//done
 std::vector<Move> generatePawnMoves(Board& board, Square pawnSquare, bool white){
-    //todo: Make this color-agnostic (make it work for black as well)
+    //todo: finish EnPassent.
+
+    int one_square_y;
+    int two_square_y;
+    int ne_x; int ne_y;
+    int nw_x; int nw_y;
+    Rank startingRank;
+    Rank promotionRank;
+    std::array<Piece, 4> possiblePromotions;
+
+    switch (white){
+        case true:
+            one_square_y = 1;
+            two_square_y = 2;
+            ne_x = 1; ne_y = 1;
+            nw_x = -1; nw_y = 1;
+            startingRank = Rank::TWO;
+            promotionRank = Rank::SEVEN;
+            possiblePromotions = {Piece::WHITE_QUEEN, Piece::WHITE_KNIGHT, Piece::WHITE_BISHOP, Piece::WHITE_ROOK};
+            break;
+
+        case false:
+            one_square_y = -1;
+            two_square_y = -2;
+            ne_x = -1; ne_y = -1;
+            nw_x = 1; nw_y = -1;
+            startingRank = Rank::SEVEN;
+            promotionRank = Rank::TWO;
+            possiblePromotions = {Piece::BLACK_QUEEN, Piece::BLACK_KNIGHT, Piece::BLACK_BISHOP, Piece::BLACK_ROOK};
+            break;
+    }
+
     auto legalMoves = std::vector<Move>();
 
     //1. Normal Moves (Up 1, Up 2)
-    auto up_one_square = Board::getSquareOffset(pawnSquare, 0, 1);
-    if (up_one_square){ //if not last rank
+    auto up_one_square = Board::getSquareOffset(pawnSquare, 0, one_square_y); //(0, 1/-1)
+    if (up_one_square){ //if legal rank
 
         //if nothing is directly in front
-        if (board.isEmpty(up_one_square.value()))
+        //if you're on rank 7, you MUST promote! you cannot just do a normal 1 square move
+        if (board.isEmpty(up_one_square.value()) && Board::getRank(pawnSquare) != promotionRank)
             legalMoves.push_back(Move{
                 .sourceSquare = pawnSquare,
                 .destinationSquare = up_one_square.value(),
             });
 
         //if nothing is directly in front, 2 squares in front, AND pawn has not moved before
-        if (Board::getRank(pawnSquare) == Rank::TWO){ //in starting position
+        if (Board::getRank(pawnSquare) == startingRank){ //in starting position
 
-            auto up_two_squares = Board::getSquareOffset(pawnSquare, 0, 2);
+            auto up_two_squares = Board::getSquareOffset(pawnSquare, 0, two_square_y); //(0, 2/-2)
             if (up_two_squares){
                 if (board.isEmpty(up_one_square.value()) && board.isEmpty(up_two_squares.value()))
                     legalMoves.push_back(Move{
@@ -52,7 +83,7 @@ std::vector<Move> generatePawnMoves(Board& board, Square pawnSquare, bool white)
     }
 
     //2. Diagonal Captures
-    auto north_east = Board::getSquareOffset(pawnSquare, 1, 1);
+    auto north_east = Board::getSquareOffset(pawnSquare, ne_x, ne_y); // (1, 1) / (-1, -1)
     if (north_east){
         if (board.isEmpty(north_east.value()) == false){
 
@@ -61,16 +92,29 @@ std::vector<Move> generatePawnMoves(Board& board, Square pawnSquare, bool white)
             Color capturingPieceColor = Board::getPieceColor(capturingPiece).value();
             Color capturedPieceColor = Board::getPieceColor(capturedPiece).value();
 
-            if (capturedPieceColor != capturingPieceColor)
-                legalMoves.push_back(Move{
-                    .sourceSquare = pawnSquare,
-                    .destinationSquare = north_east.value(),
-                    .capturedPiece = capturedPiece
-                });
+            if (capturedPieceColor != capturingPieceColor){
+                if (Board::getRank(pawnSquare) == promotionRank){
+                    for (auto promotionPiece : possiblePromotions){
+                        legalMoves.push_back(Move{
+                            .sourceSquare = pawnSquare,
+                            .destinationSquare = north_east.value(),
+                            .promotionPiece = promotionPiece,
+                            .capturedPiece = capturedPiece
+                        });
+                    }
+                }
+                else{
+                    legalMoves.push_back(Move{
+                        .sourceSquare = pawnSquare,
+                        .destinationSquare = north_east.value(),
+                        .capturedPiece = capturedPiece
+                    });
+                }
+            }
         }
     }
 
-    auto north_west = Board::getSquareOffset(pawnSquare, -1, 1);
+    auto north_west = Board::getSquareOffset(pawnSquare, nw_x, nw_y); // (-1, 1) / (1, -1)
     if (north_west){
         if (board.isEmpty(north_west.value()) == false){
 
@@ -79,23 +123,36 @@ std::vector<Move> generatePawnMoves(Board& board, Square pawnSquare, bool white)
             Color capturingPieceColor = Board::getPieceColor(capturingPiece).value();
             Color capturedPieceColor = Board::getPieceColor(capturedPiece).value();
 
-            if (capturedPieceColor != capturingPieceColor)
-            legalMoves.push_back(Move{
-                .sourceSquare = pawnSquare,
-                .destinationSquare = north_west.value(),
-                .capturedPiece = capturedPiece
-            });
+            if (capturedPieceColor != capturingPieceColor){
+                if (Board::getRank(pawnSquare) == promotionRank){
+                    for (auto promotionPiece : possiblePromotions){
+                        legalMoves.push_back(Move{
+                            .sourceSquare = pawnSquare,
+                            .destinationSquare = north_west.value(),
+                            .promotionPiece = promotionPiece,
+                            .capturedPiece = capturedPiece
+                        });
+                    }
+                }
+                else{
+                    legalMoves.push_back(Move{
+                        .sourceSquare = pawnSquare,
+                        .destinationSquare = north_west.value(),
+                        .capturedPiece = capturedPiece
+                    });
+                }
+
+            }
         }
     }
 
     //3. Promotions
     Rank rank = Board::getRank(pawnSquare);
 
-    if (rank == Rank::SEVEN){
-        up_one_square = Board::getSquareOffset(pawnSquare, 0, 1);
+    if (rank == promotionRank){
+        up_one_square = Board::getSquareOffset(pawnSquare, 0, one_square_y); // (0, 1/-1)
         if (up_one_square){
             if (board.isEmpty(up_one_square.value())){
-                auto possiblePromotions = {Piece::WHITE_QUEEN, Piece::WHITE_ROOK, Piece::WHITE_KNIGHT, Piece::WHITE_BISHOP};
                 for (Piece promotionPiece : possiblePromotions){
                     legalMoves.push_back(Move{
                         .sourceSquare = pawnSquare,
